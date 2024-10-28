@@ -1,0 +1,24 @@
+networks:
+  ethereum:
+    rpc_url: https://mainnet.infura.io/v3/<your_infura_project_id>
+    tokens:
+      USDC:
+        address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        decimals: 6
+    addresses:
+      - alias: "bridge_eth"
+        address: "<your_bridge_eth_address>"
+
+  bsc:
+    rpc_url: https://bsc-dataseed1.binance.org
+    tokens:
+      USDC:
+        address: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+        decimals: 18
+    addresses:
+      - alias: "bridge_bsc"
+        address: "<your_bridge_bsc_address>"
+
+settings:
+  scrape_interval: 60
+  port: 4200

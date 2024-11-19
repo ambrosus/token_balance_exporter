@@ -2,6 +2,7 @@ import os
 import sys
 import asyncio
 import logging
+import signal
 from aiohttp import web
 from .config import Config
 from .monitor import TokenMonitor
@@ -18,7 +19,25 @@ async def main_async():
     config = None
     monitor = None
     runner = None
-    
+
+    async def shutdown():
+        logger.info("Received shutdown signal")
+        if monitor:
+            try:
+                await monitor.shutdown()
+            except Exception as e:
+                logger.error(f"Error during monitor shutdown: {e}")
+        if runner:
+            try:
+                logger.info("Cleaning up runner...")
+                await runner.cleanup()
+            except Exception as e:
+                logger.error(f"Error during runner cleanup: {e}")
+        logger.info("Finishing event loop...")
+
+    loop = asyncio.get_running_loop()
+    loop.add_signal_handler(signal.SIGTERM, lambda: asyncio.create_task(shutdown()))
+
     try:
         # Load configuration
         config_path = os.getenv('CONFIG_PATH', 'config.yaml')
@@ -42,10 +61,7 @@ async def main_async():
         
     except Exception as e:
         logger.error(f"Fatal error: {e}")
-        if monitor:
-            await monitor.shutdown()
-        if runner:
-            await runner.cleanup()
+        await shutdown()
         sys.exit(1)
 
 def main():
@@ -56,6 +72,8 @@ def main():
     except Exception as e:
         logger.error(f"Fatal error in main: {e}")
         sys.exit(1)
+    finally:
+        logger.info("Program terminated")
 
 if __name__ == "__main__":
     main()

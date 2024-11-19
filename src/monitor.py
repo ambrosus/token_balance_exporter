@@ -198,6 +198,8 @@ class TokenMonitor:
                 logger.error(f"Error in collection loop: {e}")
 
             await asyncio.sleep(self.config.scrape_interval)
+        
+        logger.info("Metrics collection stopped")
     
     async def init_web3_connections(self):
         """Initialize Web3 connections and verify them"""
@@ -216,5 +218,9 @@ class TokenMonitor:
         self.running = False
         # Add a small delay to allow pending operations to complete
         await asyncio.sleep(1)
-        await self.app.shutdown()
-        await self.app.cleanup()
+        if self.app:
+            self.app.freeze()
+            await self.app.shutdown()
+            await self.app.cleanup()
+        else:
+            logger.warning("App is not initialized, skipping shutdown steps.")
